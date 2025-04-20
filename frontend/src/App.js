@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './styles.css';
 
+
 function App() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [result, setResult] = useState(null);
@@ -11,7 +12,6 @@ function App() {
     // Convert FileList to array and set to state
     setSelectedFiles(Array.from(e.target.files));
   };
-
   const handleSubmit = async (e) => {
     setLoading(true);
     e.preventDefault();
@@ -26,9 +26,11 @@ function App() {
     selectedFiles.forEach(file => formData.append('videos', file));
 
     try {
+      console.log("dabaya aapne?????")
       const response = await axios.post('http://localhost:5000/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+      console.log("nikal gaya mera, dikha??")
       setResult(response.data);
       console.log(response);
       setLoading(false);
@@ -95,3 +97,4 @@ function App() {
 }
 
 export default App;
+

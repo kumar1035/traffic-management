@@ -1,5 +1,6 @@
 import cv2 as cv
 import time
+from cv2 import yolov4
 Conf_threshold = 0.6
 NMS_threshold = 0.4
 COLORS = [(0, 255, 0), (0, 0, 255), (255, 0, 0),
