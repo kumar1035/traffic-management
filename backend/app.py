@@ -1,56 +1,20 @@
-# from flask import Flask, request, jsonify
-# from flask_cors import CORS
-# import os
-# from yolov4 import detect_cars  # We'll use the detect_cars function from yolov4.py
-
-# app = Flask(__name__)
-# CORS(app)
-
-# @app.route('/')
-# def home():
-#     return "Flask app is running!"
-
-# @app.route('/upload', methods=['POST'])
-# def upload_files():
-#     # Expecting exactly 4 videos in the 'videos' form-data field
-#     files = request.files.getlist('videos')
-#     if len(files) != 4:
-#         return jsonify({'error': 'Please upload exactly 4 videos'}), 400
-
-#     # Save uploaded videos to 'uploads' folder
-#     video_paths = []
-#     for i, file in enumerate(files):
-#         video_path = os.path.join('uploads', f'video_{i}.mp4')
-#         file.save(video_path)
-#         video_paths.append(video_path)
-
-#     # Detect cars in each video
-#     num_cars_list = []
-#     for video_file in video_paths:
-#         num_cars = detect_cars(video_file)
-#         num_cars_list.append(num_cars)
-
-#     # Instead of calling `optimize_traffic`, just return the detected counts
-#     return jsonify({'car_counts': num_cars_list})
-
-# if __name__ == '__main__':
-#     # Ensure 'uploads' folder exists
-#     if not os.path.exists('uploads'):
-#         os.makedirs('uploads')
-#     app.run(debug=True)
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
-
-from yolov4 import detect_cars
+from yolov8_version.main_detection import detect_cars  # Import detect_cars function
+from ultralytics import YOLO  # Make sure YOLO is imported for model loading
 from algo import optimize_traffic
 
 app = Flask(__name__)
 CORS(app)
 
+# Ensure 'uploads' folder exists
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Load YOLOv8 model
+weights_path = 'yolov8n.pt'  # Make sure the correct path to the YOLOv8 weights file
+model = YOLO(weights_path)
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
@@ -68,9 +32,14 @@ def upload_files():
         # Step 1: Detect cars in each video
         num_cars_list = []
         for video_file in video_paths:
-            num_cars = detect_cars(video_file)
+            # Ensure to pass the model to detect_cars function
+            result = detect_cars(video_file, model)
+            
+            # Assuming the result contains the count of cars as the first element of the tuple
+            num_cars = result[1]  # This might need to be adjusted based on the output format of detect_cars
+            
             print(f"Detected {num_cars} cars in {video_file}")
-            num_cars_list.append(int(num_cars))
+            num_cars_list.append(int(num_cars))  # Now num_cars is an integer
 
         # Step 2: Optimize traffic timings based on car counts
         optimized_timings = optimize_traffic(num_cars_list)
@@ -84,3 +53,6 @@ def upload_files():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+#python app.py
